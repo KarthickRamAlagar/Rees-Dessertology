@@ -1,37 +1,14 @@
-// Dev-only: runs the client/api/** serverless functions directly inside
+// Dev-only: runs the client/server/** API handlers directly inside
 // Vite's own dev server, so `npm run dev` alone is enough locally — no
 // `vercel dev` process, no second terminal, and none of the Windows
 // UV_HANDLE_CLOSING crashes that came from Vercel CLI wrapping Vite as its
 // own dev command.
 //
-// Production is untouched: Vercel still deploys everything under
-// client/api/** as real serverless functions exactly as before. This file
+// Production is untouched: Vercel deploys client/api/[...path].js as ONE
+// serverless function that dispatches to client/server/**. This file
 // lives outside api/, so it is never itself deployed as a function — it
 // only runs here, as a Vite plugin, in dev.
 
-const ROUTES = [
-  { pattern: /^\/api\/auth\/session\/?$/, file: "/api/auth/session.js" },
-  { pattern: /^\/api\/categories\/?$/, file: "/api/categories.js" },
-  { pattern: /^\/api\/products\/?$/, file: "/api/products.js" },
-  { pattern: /^\/api\/orders\/?$/, file: "/api/orders/index.js" },
-  { pattern: /^\/api\/orders\/([^/]+)\/deliver\/?$/, file: "/api/orders/[orderNumber]/deliver.js", params: ["orderNumber"] },
-  { pattern: /^\/api\/orders\/([^/]+)\/messages\/?$/, file: "/api/orders/[orderNumber]/messages.js", params: ["orderNumber"] },
-  { pattern: /^\/api\/orders\/([^/]+)\/?$/, file: "/api/orders/[orderNumber].js", params: ["orderNumber"] },
-  { pattern: /^\/api\/admin\/orders\/?$/, file: "/api/admin/orders.js" },
-  { pattern: /^\/api\/admin\/orders\/([^/]+)\/messages\/?$/, file: "/api/admin/orders/[id]/messages.js", params: ["id"] },
-  { pattern: /^\/api\/admin\/orders\/([^/]+)\/?$/, file: "/api/admin/orders/[id].js", params: ["id"] },
-  { pattern: /^\/api\/feedback\/?$/, file: "/api/feedback.js" },
-  { pattern: /^\/api\/admin\/products\/?$/, file: "/api/admin/products.js" },
-  { pattern: /^\/api\/admin\/sales\/?$/, file: "/api/admin/sales.js" },
-  { pattern: /^\/api\/notifications\/?$/, file: "/api/notifications.js" },
-  { pattern: /^\/api\/admin\/notifications\/?$/, file: "/api/admin/notifications.js" },
-  { pattern: /^\/api\/admin\/notifications\/([^/]+)\/?$/, file: "/api/admin/notifications/[id].js", params: ["id"] },
-  { pattern: /^\/api\/admin\/products\/([^/]+)\/?$/, file: "/api/admin/products/[id].js", params: ["id"] },
-  { pattern: /^\/api\/admin\/messages\/?$/, file: "/api/admin/messages.js" },
-  { pattern: /^\/api\/contact\/?$/, file: "/api/contact.js" },
-  { pattern: /^\/api\/newsletter\/?$/, file: "/api/newsletter.js" },
-  { pattern: /^\/api\/stats\/?$/, file: "/api/stats.js" },
-];
 
 // Vercel's Node runtime augments the plain http.ServerResponse with
 // .status()/.json() (chainable) — plain Vite/connect doesn't have these, so
@@ -72,16 +49,12 @@ export function apiDevMiddleware() {
         if (!req.url || !req.url.startsWith("/api/")) return next();
 
         const url = new URL(req.url, "http://localhost");
-        const route = ROUTES.find((r) => r.pattern.test(url.pathname));
+        // Same route table production uses (server/router.js).
+        const router = await server.ssrLoadModule("/server/router.js");
+        const route = router.resolve(url.pathname);
         if (!route) return next();
 
-        const match = url.pathname.match(route.pattern);
-        req.query = Object.fromEntries(url.searchParams.entries());
-        if (route.params) {
-          route.params.forEach((name, i) => {
-            req.query[name] = decodeURIComponent(match[i + 1]);
-          });
-        }
+        req.query = { ...Object.fromEntries(url.searchParams.entries()), ...route.params };
 
         // Vercel's runtime pre-parses a JSON body into req.body. Multipart
         // (product image upload) must stay untouched — api/admin/products.js
@@ -107,8 +80,7 @@ export function apiDevMiddleware() {
           // Goes through Vite's own module graph, so edits to api/** files
           // are picked up the same way the rest of the app hot-reloads —
           // no restart needed.
-          const mod = await server.ssrLoadModule(route.file);
-          await mod.default(req, res);
+          await route.handler(req, res);
         } catch (err) {
           console.error(`[api-dev-middleware] ${req.method} ${req.url} failed:`, err);
           if (!res.headersSent) {
