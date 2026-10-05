@@ -1,0 +1,44 @@
+{
+  "nav": {
+    "home": "Home",
+    "shop": "Shop",
+    "categories": "Categories",
+    "about": "About",
+    "contact": "Contact",
+    "cart": "Cart",
+    "wishlist": "Wishlist",
+    "account": "Account"
+  },
+  "hero": {
+    "title": "Desserts Made to Melt Hearts",
+    "subtitle": "Indulgent dessert jars, handcrafted with love and layered with deliciousness. Freshly made for every sweet moment.",
+    "explore": "Explore Flavours"
+  },
+
+  
+  "product": {
+    "addToCart": "Add to Cart",
+    "buyNow": "Buy Now",
+    "outOfStock": "Out of Stock",
+    "weight": "Weight",
+    "reviews": "reviews"
+  },
+  "cart": {
+    "title": "Your Cart",
+    "empty": "Your cart is empty",
+    "subtotal": "Subtotal",
+    "total": "Total",
+    "checkout": "Proceed to Checkout"
+  },
+  "order": {
+    "placed": "Order Placed!",
+    "trackOrder": "Track Order",
+    "status": {
+      "placed": "Order Confirmed",
+      "packed": "Packed",
+      "shipped": "Shipped",
+      "outForDelivery": "Out for Delivery",
+      "delivered": "Delivered"
+    }
+  }
+}

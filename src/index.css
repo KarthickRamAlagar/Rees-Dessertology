@@ -1,0 +1,144 @@
+@import "tailwindcss";
+
+/* Enables `dark:` utility variants for any spot-fixes beyond the token swap below */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  /* Brand palette — Ree's Dessertology (light theme defaults) */
+  --color-cream-50: #fdfbf7;
+  --color-cream-100: #faf5ec;
+  --color-cream-200: #f3e9d7;
+  --color-cream-300: #e9d8ba;
+
+  --color-cocoa-500: #6b4226;
+  --color-cocoa-600: #56341e;
+  --color-cocoa-700: #402616;
+  --color-cocoa-800: #2b1a0f;
+
+  --color-caramel-400: #d9a441;
+  --color-caramel-500: #c8912e;
+  --color-caramel-600: #a8761f;
+
+  --color-berry-500: #a3455a;
+  --color-berry-600: #8a3549;
+
+  --color-sage-500: #7c9473;
+
+  --font-display: "Playfair Display", serif;
+  --font-body: "Inter", sans-serif;
+  --font-script: "Caveat", cursive;
+
+  --radius-glass: 1.25rem;
+
+  /* Admin dashboard palette (scoped to .admin-root, see below) */
+  --color-ink-900: #12100e;
+  --color-ink-800: #1c1917;
+  --color-ink-700: #292524;
+  --color-ink-600: #44403c;
+  --color-ink-400: #a8a29e;
+  --color-ink-200: #e7e5e4;
+  --color-ink-100: #f5f5f4;
+  --color-ink-50: #fafaf9;
+
+  --color-accent-500: #c8912e;
+  --color-accent-600: #a8761f;
+
+  --color-success-500: #16a34a;
+  --color-danger-500: #dc2626;
+}
+
+/*
+ * Dark mode strategy: instead of adding `dark:` to every component, we override the
+ * same CSS custom properties Tailwind generated from @theme above. Every `bg-cream-*`
+ * and `text-cocoa-*` utility already resolves to var(--color-cream-*) / var(--color-cocoa-*),
+ * so redefining those variables under html.dark re-themes the whole app at once.
+ */
+html.dark {
+  --color-cream-50: #16100b;
+  --color-cream-100: #1f1710;
+  --color-cream-200: #2c2116;
+  --color-cream-300: #3d2e1e;
+
+  --color-cocoa-500: #d9c5a8;
+  --color-cocoa-600: #e9d8ba;
+  --color-cocoa-700: #f3e9d7;
+  --color-cocoa-800: #fdfbf7;
+
+  --glass-bg: rgba(30, 22, 14, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: rgba(0, 0, 0, 0.3);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    font-family: var(--font-body);
+    background-color: var(--color-cream-50);
+    color: var(--color-cocoa-700);
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer components {
+  .glass-panel {
+    background: var(--glass-bg, rgba(255, 255, 255, 0.55));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.4));
+    box-shadow: 0 8px 32px var(--glass-shadow, rgba(107, 66, 38, 0.08));
+  }
+
+  .glass-panel-dark {
+    background: rgba(43, 26, 15, 0.55);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .btn-primary {
+    @apply bg-caramel-500 hover:bg-caramel-600 text-white font-medium rounded-full px-6 py-2.5 transition-colors duration-200;
+  }
+
+  /* Fixed espresso background (not the cocoa-* token) — cocoa-600/700 flip to
+     light beige under html.dark, which would leave white button text on a
+     near-white background. This button must look the same in both themes. */
+  .btn-secondary {
+    background-color: #402616;
+    color: #fff;
+    @apply font-medium rounded-full px-6 py-2.5 transition-colors duration-200;
+  }
+  .btn-secondary:hover {
+    background-color: #2b1a0f;
+  }
+
+  /* Admin dashboard component classes — only used inside .admin-root
+     (AdminLayout), kept separate from the storefront's glass/caramel look. */
+  .admin-root .card {
+    @apply bg-white border border-ink-200 rounded-xl p-5 shadow-sm;
+  }
+  .admin-root .btn-accent {
+    @apply bg-accent-500 hover:bg-accent-600 text-white font-medium rounded-lg px-4 py-2 transition-colors text-sm;
+  }
+  .admin-root .btn-outline {
+    @apply border border-ink-200 hover:bg-ink-100 text-ink-700 font-medium rounded-lg px-4 py-2 transition-colors text-sm;
+  }
+
+  .animate-wave {
+    animation: wave 1.8s ease-in-out infinite;
+    transform-origin: 70% 70%;
+  }
+}
+
+@keyframes wave {
+  0%, 60%, 100% { transform: rotate(0deg); }
+  10% { transform: rotate(14deg); }
+  20% { transform: rotate(-8deg); }
+  30% { transform: rotate(14deg); }
+  40% { transform: rotate(-4deg); }
+  50% { transform: rotate(10deg); }
+}
